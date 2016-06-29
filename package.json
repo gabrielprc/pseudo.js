@@ -1,0 +1,24 @@
+{
+  "name": "pseudojs",
+  "version": "0.0.1",
+  "description": "Pseudo-code to Javascript compiler.",
+  "main": "pseudo.js",
+  "scripts": {
+    "test": "node_modules/.bin/tape pseudo.js | node_modules/.bin/tap-spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gabrielprc/pseudojs.git"
+  },
+  "author": "Gabriel Rodriguez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gabrielprc/pseudojs/issues"
+  },
+  "homepage": "https://github.com/gabrielprc/pseudojs#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.0"
+  }
+}
