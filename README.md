@@ -113,6 +113,7 @@ Boolean operations take boolean values as operands and return another boolean va
 - Indentation is irrelevant to the execution of the code.
 - Lower and upper-case are indifferent. For the sake of readability, we recommend writing variable names in full upper-case, and the rest of the code (operators, statements) in lower-case.
 - All words and symbols defined in this draft as operators, statements, separators, etc., are reserved, and _cannot be used in variable names_.
+- The most external block (main thread of execution) carries no curly brackets, they are implicit.
 
 ## Examples
 _TBD_.
