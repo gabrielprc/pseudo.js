@@ -189,33 +189,25 @@ UnicodeConnectorPunctuation
 
 ReservedWord
   = Keyword
-  / NullLiteral
   / BooleanLiteral
 
 Keyword
-  = CaseToken
-  / DefaultToken
-  / DoToken
-  / ElseToken
+  = ElseToken
   / ForToken
-  / FunctionToken
   / IfToken
   / InToken
   / ReturnToken
-  / SwitchToken
-  / VarToken
   / VoidToken
   / WhileToken
 
 Literal
-  = NullLiteral
+  = VoidLiteral
   / BooleanLiteral
   / NumericLiteral
   / StringLiteral
-  / RegularExpressionLiteral
 
-NullLiteral
-  = NullToken { return { type: "Literal", value: null }; }
+VoidLiteral
+  = VoidToken { return { type: "Literal", value: null }; }
 
 BooleanLiteral
   = TrueToken  { return { type: "Literal", value: true  }; }
@@ -332,48 +324,6 @@ UnicodeEscapeSequence
       return String.fromCharCode(parseInt(digits, 16));
     }
 
-RegularExpressionLiteral "regular expression"
-  = "/" pattern:$RegularExpressionBody "/" flags:$RegularExpressionFlags {
-      var value;
-
-      try {
-        value = new RegExp(pattern, flags);
-      } catch (e) {
-        error(e.message);
-      }
-
-      return { type: "Literal", value: value };
-    }
-
-RegularExpressionBody
-  = RegularExpressionFirstChar RegularExpressionChar*
-
-RegularExpressionFirstChar
-  = ![*\\/[] RegularExpressionNonTerminator
-  / RegularExpressionBackslashSequence
-  / RegularExpressionClass
-
-RegularExpressionChar
-  = ![\\/[] RegularExpressionNonTerminator
-  / RegularExpressionBackslashSequence
-  / RegularExpressionClass
-
-RegularExpressionBackslashSequence
-  = "\\" RegularExpressionNonTerminator
-
-RegularExpressionNonTerminator
-  = !LineTerminator SourceCharacter
-
-RegularExpressionClass
-  = "[" RegularExpressionClassChar* "]"
-
-RegularExpressionClassChar
-  = ![\]\\] RegularExpressionNonTerminator
-  / RegularExpressionBackslashSequence
-
-RegularExpressionFlags
-  = IdentifierPart*
-
 /*
  * Unicode Character Categories
  *
@@ -434,24 +384,18 @@ Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
 
 /* Tokens */
 
-CaseToken       = "case"       !IdentifierPart
-DefaultToken    = "default"    !IdentifierPart
-DoToken         = "do"         !IdentifierPart
+EachToken       = "each"       !IdentifierPart
 ElseToken       = "else"       !IdentifierPart
+EndIfToken      = "endif"      !IdentifierPart
 FalseToken      = "false"      !IdentifierPart
 ForToken        = "for"        !IdentifierPart
-FunctionToken   = "function"   !IdentifierPart
-GetToken        = "get"        !IdentifierPart
+HasToken        = "has"        !IdentifierPart
 IfToken         = "if"         !IdentifierPart
-ThenToken       = "then"       !IdentifierPart
-EndIfToken      = "endif"      !IdentifierPart
-InToken         = "in"         !IdentifierPart
-NullToken       = "null"       !IdentifierPart
+IsToken         = "is" / "="   !IdentifierPart
+InToken         = "in" / "of"  !IdentifierPart
 ReturnToken     = "return"     !IdentifierPart
-SetToken        = "set"        !IdentifierPart
-SwitchToken     = "switch"     !IdentifierPart
+ThenToken       = "then"       !IdentifierPart
 TrueToken       = "true"       !IdentifierPart
-VarToken        = "var"        !IdentifierPart
 VoidToken       = "void"       !IdentifierPart
 WhileToken      = "while"      !IdentifierPart
 
@@ -538,36 +482,6 @@ PropertyAssignment
   = key:PropertyName __ ":" __ value:AssignmentExpression {
       return { key: key, value: value, kind: "init" };
     }
-  / GetToken __ key:PropertyName __
-    "(" __ ")" __
-    "{" __ body:FunctionBody __ "}"
-    {
-      return {
-        key:   key,
-        value: {
-          type:   "FunctionExpression",
-          id:     null,
-          params: [],
-          body:   body
-        },
-        kind:  "get"
-      };
-    }
-  / SetToken __ key:PropertyName __
-    "(" __ params:PropertySetParameterList __ ")" __
-    "{" __ body:FunctionBody __ "}"
-    {
-      return {
-        key:   key,
-        value: {
-          type:   "FunctionExpression",
-          id:     null,
-          params: params,
-          body:   body
-        },
-        kind:  "set"
-      };
-    }
 
 PropertyName
   = IdentifierName
@@ -578,12 +492,7 @@ PropertySetParameterList
   = id:Identifier { return [id]; }
 
 MemberExpression
-  = head:(
-        PrimaryExpression
-      / FunctionExpression __ callee:MemberExpression __ args:Arguments {
-          return { type: "NewExpression", callee: callee, arguments: args };
-        }
-    )
+  = head:(PrimaryExpression)
     tail:(
         __ "[" __ property:Expression __ "]" {
           return { property: property, computed: true };
@@ -938,14 +847,12 @@ ExpressionNoIn
 Statement
   = Block
   / VariableStatement
-  / ExpressionStatement
   / IfStatement
   / IterationStatement
   / ReturnStatement
-  / SwitchStatement
 
 Block
-  = "\n" __ body:(StatementList __)? "\n" {
+  = "{" __ body:(StatementList __)? "}" {
       return {
         type: "BlockStatement",
         body: optionalList(extractOptional(body, 0))
@@ -956,34 +863,15 @@ StatementList
   = head:Statement tail:(__ Statement)* { return buildList(head, tail, 1); }
 
 VariableStatement
-  = VarToken __ declarations:VariableDeclarationList EOS {
+  = __ declarations:VariableDeclaration EOS {
       return {
         type:         "VariableDeclaration",
         declarations: declarations
       };
     }
 
-VariableDeclarationList
-  = head:VariableDeclaration tail:(__ "," __ VariableDeclaration)* {
-      return buildList(head, tail, 3);
-    }
-
-VariableDeclarationListNoIn
-  = head:VariableDeclarationNoIn tail:(__ "," __ VariableDeclarationNoIn)* {
-      return buildList(head, tail, 3);
-    }
-
 VariableDeclaration
   = id:Identifier init:(__ Initialiser)? {
-      return {
-        type: "VariableDeclarator",
-        id:   id,
-        init: extractOptional(init, 1)
-      };
-    }
-
-VariableDeclarationNoIn
-  = id:Identifier init:(__ InitialiserNoIn)? {
       return {
         type: "VariableDeclarator",
         id:   id,
@@ -996,15 +884,6 @@ Initialiser
 
 InitialiserNoIn
   = "=" !"=" __ expression:AssignmentExpressionNoIn { return expression; }
-
-
-ExpressionStatement
-  = !("{" / FunctionToken) expression:Expression EOS {
-      return {
-        type:       "ExpressionStatement",
-        expression: expression
-      };
-    }
 
 IfStatement
   = IfToken __  test:Expression __ ThenToken __ "\n"
@@ -1033,82 +912,25 @@ IfStatement
     }
 
 IterationStatement
-  = DoToken __
-    body:Statement __
-    WhileToken __ "(" __ test:Expression __ ")" EOS
-    { return { type: "DoWhileStatement", body: body, test: test }; }
-  / WhileToken __ "(" __ test:Expression __ ")" __
-    body:Statement
-    { return { type: "WhileStatement", test: test, body: body }; }
-  / ForToken __
-    "(" __
-    init:(ExpressionNoIn __)? ";" __
-    test:(Expression __)? ";" __
-    update:(Expression __)?
-    ")" __
+  = WhileToken __ "(" __ test:Expression __ ")" __
     body:Statement
     {
       return {
-        type:   "ForStatement",
-        init:   extractOptional(init, 0),
-        test:   extractOptional(test, 0),
-        update: extractOptional(update, 0),
+        type: "WhileStatement",
+        test: test,
+        body: body
+      };
+    }
+  / ForToken __ EachToken __ each:Identifier? __ InToken __ list:Identifier? __
+    body:Statement
+    {
+      return {
+        type:   "ForEachStatement",
+        each:   extractOptional(each, 0),
+        list:   extractOptional(list, 0),
         body:   body
       };
     }
-  / ForToken __
-    "(" __
-    VarToken __ declarations:VariableDeclarationListNoIn __ ";" __
-    test:(Expression __)? ";" __
-    update:(Expression __)?
-    ")" __
-    body:Statement
-    {
-      return {
-        type:   "ForStatement",
-        init:   {
-          type:         "VariableDeclaration",
-          declarations: declarations
-        },
-        test:   extractOptional(test, 0),
-        update: extractOptional(update, 0),
-        body:   body
-      };
-    }
-  / ForToken __
-    "(" __
-    left:LeftHandSideExpression __
-    InToken __
-    right:Expression __
-    ")" __
-    body:Statement
-    {
-      return {
-        type:  "ForInStatement",
-        left:  left,
-        right: right,
-        body:  body
-      };
-    }
-  / ForToken __
-    "(" __
-    VarToken __ declarations:VariableDeclarationListNoIn __
-    InToken __
-    right:Expression __
-    ")" __
-    body:Statement
-    {
-      return {
-        type:  "ForInStatement",
-        left:  {
-          type:         "VariableDeclaration",
-          declarations: declarations
-        },
-        right: right,
-        body:  body
-      };
-    }
-
 
 ReturnStatement
   = ReturnToken EOS {
@@ -1118,59 +940,15 @@ ReturnStatement
       return { type: "ReturnStatement", argument: argument };
     }
 
-SwitchStatement
-  = SwitchToken __ "(" __ discriminant:Expression __ ")" __
-    cases:CaseBlock
-    {
-      return {
-        type:         "SwitchStatement",
-        discriminant: discriminant,
-        cases:        cases
-      };
-    }
-
-CaseBlock
-  = "{" __ clauses:(CaseClauses __)? "}" {
-      return optionalList(extractOptional(clauses, 0));
-    }
-  / "{" __
-    before:(CaseClauses __)?
-    default_:DefaultClause __
-    after:(CaseClauses __)? "}"
-    {
-      return optionalList(extractOptional(before, 0))
-        .concat(default_)
-        .concat(optionalList(extractOptional(after, 0)));
-    }
-
-CaseClauses
-  = head:CaseClause tail:(__ CaseClause)* { return buildList(head, tail, 1); }
-
-CaseClause
-  = CaseToken __ test:Expression __ ":" consequent:(__ StatementList)? {
-      return {
-        type:       "SwitchCase",
-        test:       test,
-        consequent: optionalList(extractOptional(consequent, 1))
-      };
-    }
-
-DefaultClause
-  = DefaultToken __ ":" consequent:(__ StatementList)? {
-      return {
-        type:       "SwitchCase",
-        test:       null,
-        consequent: optionalList(extractOptional(consequent, 1))
-      };
-    }
-
-
 /* ----- A.5 Functions and Programs ----- */
 
 FunctionDeclaration
-  = FunctionToken __ id:Identifier __
-    "(" __ params:(FormalParameterList __)? ")" __
-    "{" __ body:FunctionBody __ "}"
+  = __ id:Identifier __
+    __ (
+      "("  params:(FormalParameterList __)? ")"
+      / params:(FormalParameterList __)?
+    ) __
+    __ body:Block __
     {
       return {
         type:   "FunctionDeclaration",
@@ -1180,30 +958,9 @@ FunctionDeclaration
       };
     }
 
-FunctionExpression
-  = FunctionToken __ id:(Identifier __)?
-    "(" __ params:(FormalParameterList __)? ")" __
-    "{" __ body:FunctionBody __ "}"
-    {
-      return {
-        type:   "FunctionExpression",
-        id:     extractOptional(id, 0),
-        params: optionalList(extractOptional(params, 0)),
-        body:   body
-      };
-    }
-
 FormalParameterList
   = head:Identifier tail:(__ "," __ Identifier)* {
       return buildList(head, tail, 3);
-    }
-
-FunctionBody
-  = body:SourceElements? {
-      return {
-        type: "BlockStatement",
-        body: optionalList(body)
-      };
     }
 
 Program

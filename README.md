@@ -20,7 +20,7 @@ Variabes contain values. They are loosely typed (*[duck-typed](https://en.wikipe
 ## Statements
 Statements define conditions or loops for the execution of blocks.
 - Loops
-  - **for each _X_ in _Y_** `for each NUMBER in NUMBERS`
+  - **for each _X_ in/of _Y_** `for each NUMBER in NUMBERS`
   - **while _condition_** `while NUMBER < 10`
 - Conditionals
   - **if _condition_** `if NUMBER < 10`
@@ -64,6 +64,9 @@ Functions are essentially named blocks, which may receive _parameters_ to be use
   - Call with parameters: `SUM(A, B)`
   - Call without parameters: `SUM()`
   - Functions can be called without passing parameters even when it's declaration does define them. If one or more parameters are not passed, its values within the function's block will be **void**. `SUM()` _is equivalent to_ `SUM(void, void)`
+- Return
+  - All functions return a value on completing its execution. To explicitly define the return value of a function, it must contain a statement in the form of `return VALUE`, where value can be a variable, an operation, or a call to another function. If not explicitly declared, the return value of a function will be **void**.
+  - The **return** statement ends the execution of the function, whether it is the last statement or not.
 
 ## Sentences
 - A sentence can be composed of
@@ -82,7 +85,7 @@ Operators perform operations between a left-hand side and a right-hand side oper
   - Basic value assignment operator. Assigns right-hand side value to the left-hand side variable. Using _is_ or '_=_' has no difference. `VAR is 10` _is equivalent to_ `VAR = 10`.
 - **has**
   - _has_ defines the left-hand side variable as an **object**, and the right-hand side variable as a property of that object. In the sentence `HOUSE has DOORS = 2`, we are defining a variable `HOUSE` as an object, which has a property `DOORS`, to which we assign the value `2`. Shown as a key-value map: `HOUSE = {DOORS: 2}`.
-- **of** or **in**
+- **of** (or **in**)
   - _of_ and _in_ are synonims used to access a property of an object. Take for example the object `HOUSE` defined above. `DOORS of HOUSE` or `DOORS in HOUSE` would reference the property `DOORS` in it, to be used as any other variable in a statement, such as a new value assignment or an operation. `DOORS of HOUSE = 4`, `SUM(1, DOORS of HOUSE)`.
 
 ### Arithmetic
