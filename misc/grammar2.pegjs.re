@@ -192,11 +192,16 @@ ReservedWord
   / BooleanLiteral
 
 Keyword
-  = ElseToken
+  = EachToken
+  / ElseToken
+  / FalseToken
   / ForToken
+  / HasToken
   / IfToken
+  / IsToken
   / InToken
   / ReturnToken
+  / TrueToken
   / VoidToken
   / WhileToken
 
@@ -386,7 +391,6 @@ Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
 
 EachToken       = "each"       !IdentifierPart
 ElseToken       = "else"       !IdentifierPart
-EndIfToken      = "endif"      !IdentifierPart
 FalseToken      = "false"      !IdentifierPart
 ForToken        = "for"        !IdentifierPart
 HasToken        = "has"        !IdentifierPart
@@ -394,7 +398,6 @@ IfToken         = "if"         !IdentifierPart
 IsToken         = "is" / "="   !IdentifierPart
 InToken         = "in" / "of"  !IdentifierPart
 ReturnToken     = "return"     !IdentifierPart
-ThenToken       = "then"       !IdentifierPart
 TrueToken       = "true"       !IdentifierPart
 VoidToken       = "void"       !IdentifierPart
 WhileToken      = "while"      !IdentifierPart
@@ -410,7 +413,8 @@ _
 /* Automatic Semicolon Insertion */
 
 EOS
-  = __ "\n"
+  = __ LineTerminatorSequence+
+  / __ &"}"
   / __ EOF
 
 EOF
@@ -513,9 +517,7 @@ MemberExpression
     }
 
 NewExpression
-  = MemberExpression __ callee:NewExpression {
-      return { type: "NewExpression", callee: callee, arguments: [] };
-    }
+  = MemberExpression
 
 CallExpression
   = head:(
@@ -534,7 +536,7 @@ CallExpression
             computed: true
           };
         }
-      / __ "." __ property:IdentifierName {
+      / __ InToken __ property:IdentifierName {
           return {
             type:     "MemberExpression",
             property: property,
@@ -551,7 +553,7 @@ CallExpression
     }
 
 Arguments
-  = __ args:(ArgumentList __)? {
+  = "(" __ args:(ArgumentList __)? ")" {
       return optionalList(extractOptional(args, 0));
     }
 
@@ -765,25 +767,13 @@ ConditionalExpressionNoIn
   / LogicalORExpressionNoIn
 
 AssignmentExpression
-  = !ThenToken 
-    left:LeftHandSideExpression __
-    "=" !"=" __
+  = left:LeftHandSideExpression __
+    IsToken __
     right:AssignmentExpression
     {
       return {
         type:     "AssignmentExpression",
         operator: "=",
-        left:     left,
-        right:    right
-      };
-    }
-  / left:LeftHandSideExpression __
-    operator:AssignmentOperator __
-    right:AssignmentExpression
-    {
-      return {
-        type:     "AssignmentExpression",
-        operator: operator,
         left:     left,
         right:    right
       };
@@ -792,7 +782,7 @@ AssignmentExpression
 
 AssignmentExpressionNoIn
   = left:LeftHandSideExpression __
-    "=" !"=" __
+    IsToken __
     right:AssignmentExpressionNoIn
     {
       return {
@@ -802,31 +792,7 @@ AssignmentExpressionNoIn
         right:    right
       };
     }
-  / left:LeftHandSideExpression __
-    operator:AssignmentOperator __
-    right:AssignmentExpressionNoIn
-    {
-      return {
-        type:     "AssignmentExpression",
-        operator: operator,
-        left:     left,
-        right:    right
-      };
-    }
   / ConditionalExpressionNoIn
-
-AssignmentOperator
-  = "*="
-  / "/="
-  / "%="
-  / "+="
-  / "-="
-  / "<<="
-  / ">>="
-  / ">>>="
-  / "&="
-  / "^="
-  / "|="
 
 Expression
   = head:AssignmentExpression tail:(__ "," __ AssignmentExpression)* {
@@ -871,7 +837,7 @@ VariableStatement
     }
 
 VariableDeclaration
-  = id:Identifier init:(__ Initialiser)? {
+  = id:Identifier __ init:(__ Initialiser)? {
       return {
         type: "VariableDeclarator",
         id:   id,
@@ -880,17 +846,16 @@ VariableDeclaration
     }
 
 Initialiser
-  = "=" !"=" __ expression:AssignmentExpression { return expression; }
+  = IsToken __ expression:AssignmentExpression { return expression; }
 
 InitialiserNoIn
-  = "=" !"=" __ expression:AssignmentExpressionNoIn { return expression; }
+  = IsToken __ expression:AssignmentExpressionNoIn { return expression; }
 
 IfStatement
-  = IfToken __  test:Expression __ ThenToken __ "\n"
+  = IfToken __  test:Expression __
     consequent:Statement __
     ElseToken __
     alternate:Statement __
-    EndIfToken __
     {
       return {
         type:       "IfStatement",
@@ -899,9 +864,8 @@ IfStatement
         alternate:  alternate
       };
     }
-  / IfToken __ test:Expression __ ThenToken __
+  / IfToken __ test:Expression __
     consequent:Statement __
-    EndIfToken __
     {
       return {
         type:       "IfStatement",
