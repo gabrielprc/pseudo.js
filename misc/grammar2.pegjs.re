@@ -907,17 +907,24 @@ ReturnStatement
 /* ----- A.5 Functions and Programs ----- */
 
 FunctionDeclaration
-  = __ id:Identifier __
-    __ (
-      "("  params:(FormalParameterList __)? ")"
-      / params:(FormalParameterList __)?
-    ) __
+  = __ id:Identifier
+    __ "("  params:(FormalParameterList __)? ")"
     __ body:Block __
     {
       return {
         type:   "FunctionDeclaration",
         id:     id,
         params: optionalList(extractOptional(params, 0)),
+        body:   body
+      };
+    }
+    / __ id:Identifier
+    __ body:Block __
+    {
+      return {
+        type:   "FunctionDeclaration",
+        id:     id,
+        params: [],
         body:   body
       };
     }
