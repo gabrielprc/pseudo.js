@@ -413,7 +413,7 @@ _
 /* Automatic Semicolon Insertion */
 
 EOS
-  = __ LineTerminatorSequence+
+  = _ LineTerminatorSequence+
   / __ &"}"
   / __ EOF
 
