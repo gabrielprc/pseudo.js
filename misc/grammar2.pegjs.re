@@ -501,7 +501,7 @@ MemberExpression
         __ "[" __ property:Expression __ "]" {
           return { property: property, computed: true };
         }
-      / __ "." __ property:IdentifierName {
+      / __ InToken __ property:IdentifierName {
           return { property: property, computed: false };
         }
     )*
@@ -778,6 +778,17 @@ AssignmentExpression
         right:    right
       };
     }
+  / left:LeftHandSideExpression __
+    operator:AssignmentOperator __
+    right:AssignmentExpression
+    {
+      return {
+        type:     "AssignmentExpression",
+        operator: operator,
+        left:     left,
+        right:    right
+      };
+    }
   / ConditionalExpression
 
 AssignmentExpressionNoIn
@@ -788,6 +799,17 @@ AssignmentExpressionNoIn
       return {
         type:     "AssignmentExpression",
         operator: "=",
+        left:     left,
+        right:    right
+      };
+    }
+  / left:LeftHandSideExpression __
+    operator:AssignmentOperator __
+    right:AssignmentExpressionNoIn
+    {
+      return {
+        type:     "AssignmentExpression",
+        operator: operator,
         left:     left,
         right:    right
       };
