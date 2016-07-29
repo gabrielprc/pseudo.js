@@ -194,12 +194,14 @@ ReservedWord
 Keyword
   = EachToken
   / ElseToken
+  / EqualsToken
   / FalseToken
   / ForToken
   / HasToken
   / IfToken
   / IsToken
   / InToken
+  / NotToken
   / ReturnToken
   / TrueToken
   / VoidToken
@@ -391,12 +393,14 @@ Zs = [\u0020\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]
 
 EachToken       = "each"       !IdentifierPart
 ElseToken       = "else"       !IdentifierPart
+EqualsToken     = "equals"     !IdentifierPart
 FalseToken      = "false"      !IdentifierPart
 ForToken        = "for"        !IdentifierPart
 HasToken        = "has"        !IdentifierPart
 IfToken         = "if"         !IdentifierPart
 IsToken         = "is" / "="   !IdentifierPart
 InToken         = "in" / "of"  !IdentifierPart
+NotToken        = "not"        !IdentifierPart
 ReturnToken     = "return"     !IdentifierPart
 TrueToken       = "true"       !IdentifierPart
 VoidToken       = "void"       !IdentifierPart
@@ -605,7 +609,7 @@ UnaryOperator
   / $("+" !"=")
   / $("-" !"=")
   / "~"
-  / "!"
+  / NotToken
 
 MultiplicativeExpression
   = head:UnaryExpression
@@ -674,6 +678,7 @@ EqualityOperator
   / "!=="
   / "=="
   / "!="
+  / EqualsToken
 
 BitwiseANDExpression
   = head:EqualityExpression
@@ -725,7 +730,7 @@ LogicalANDExpressionNoIn
     { return buildBinaryExpression(head, tail); }
 
 LogicalANDOperator
-  = "&&"
+  = "and"
 
 LogicalORExpression
   = head:LogicalANDExpression
@@ -738,7 +743,7 @@ LogicalORExpressionNoIn
     { return buildBinaryExpression(head, tail); }
 
 LogicalOROperator
-  = "||"
+  = "or"
 
 ConditionalExpression
   = test:LogicalORExpression __
