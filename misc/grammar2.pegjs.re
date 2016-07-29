@@ -496,7 +496,9 @@ PropertySetParameterList
   = id:Identifier { return [id]; }
 
 MemberExpression
-  = head:(PrimaryExpression)
+  = head:(
+        PrimaryExpression
+    )
     tail:(
         __ "[" __ property:Expression __ "]" {
           return { property: property, computed: true };
@@ -816,6 +818,19 @@ AssignmentExpressionNoIn
     }
   / ConditionalExpressionNoIn
 
+AssignmentOperator
+  = "*="
+  / "/="
+  / "%="
+  / "+="
+  / "-="
+  / "<<="
+  / ">>="
+  / ">>>="
+  / "&="
+  / "^="
+  / "|="
+
 Expression
   = head:AssignmentExpression tail:(__ "," __ AssignmentExpression)* {
       return tail.length > 0
@@ -898,7 +913,7 @@ IfStatement
     }
 
 IterationStatement
-  = WhileToken __ "(" __ test:Expression __ ")" __
+  = WhileToken __ test:Expression __
     body:Statement
     {
       return {
@@ -907,13 +922,13 @@ IterationStatement
         body: body
       };
     }
-  / ForToken __ EachToken __ each:Identifier? __ InToken __ list:Identifier? __
+  / ForToken __ EachToken __ each:Identifier __ InToken __ list:Identifier __
     body:Statement
     {
       return {
         type:   "ForEachStatement",
-        each:   extractOptional(each, 0),
-        list:   extractOptional(list, 0),
+        each:   each,
+        list:   list,
         body:   body
       };
     }
