@@ -474,20 +474,17 @@ Elision
   = "," commas:(__ ",")* { return filledArray(commas.length + 1, null); }
 
 ObjectLiteral
-  = "{" __ "}" { return { type: "ObjectExpression", properties: [] }; }
-  / "{" __ properties:PropertyNameAndValueList __ "}" {
+  = __ properties:PropertyNameAndValueList __ {
        return { type: "ObjectExpression", properties: properties };
      }
-  / "{" __ properties:PropertyNameAndValueList __ "," __ "}" {
-       return { type: "ObjectExpression", properties: properties };
-     }
+
 PropertyNameAndValueList
-  = head:PropertyAssignment tail:(__ "," __ PropertyAssignment)* {
+  = __ head:PropertyAssignment tail:(__ "," __ PropertyAssignment)* {
       return buildList(head, tail, 3);
     }
 
 PropertyAssignment
-  = key:PropertyName __ ":" __ value:AssignmentExpression {
+  = __ HasToken __ key:PropertyName __ IsToken __ value:AssignmentExpression {
       return { key: key, value: value, kind: "init" };
     }
 
@@ -775,6 +772,16 @@ ConditionalExpressionNoIn
 
 AssignmentExpression
   = left:LeftHandSideExpression __
+    right:ObjectLiteral
+    {
+      return {
+        type:     "AssignmentExpression",
+        operator: "=",
+        left:     left,
+        right:    right
+      };
+    }
+  / left:LeftHandSideExpression __
     IsToken __
     right:AssignmentExpression
     {
@@ -889,9 +896,11 @@ VariableDeclaration
 
 Initialiser
   = IsToken __ expression:AssignmentExpression { return expression; }
+  / __ expression:ObjectLiteral { return expression; }
 
 InitialiserNoIn
   = IsToken __ expression:AssignmentExpressionNoIn { return expression; }
+  / __ expression:ObjectLiteral { return expression; }
 
 IfStatement
   = IfToken __  test:Expression __
