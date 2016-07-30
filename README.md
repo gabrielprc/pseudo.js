@@ -14,8 +14,8 @@ Variabes contain values. They are loosely typed (*[duck-typed](https://en.wikipe
   - Primitive (numeric, alphanumeric, boolean, void) `NUMBER = 1`
     - Booleans are `true` or `false`.
   - Object (key-value map) `HOUSE has DOOR = 1, HOUSE has WINDOW = 2`
-  - Array `NUMBERS = 1, 2, 3`
-  - Function `SUM(NUMA, NUMB)`
+  - Array `NUMBERS = [1, 2, 3]`
+  - Function `function SUM(NUMA, NUMB)`
 
 ## Statements
 Statements define conditions or loops for the execution of blocks.
