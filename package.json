@@ -2,9 +2,9 @@
   "name": "pseudojs",
   "version": "0.0.1",
   "description": "Pseudo-code to Javascript compiler.",
-  "main": "pseudo.js",
+  "main": "main.js",
   "scripts": {
-    "test": "node_modules/.bin/tape pseudo.js | node_modules/.bin/tap-spec"
+    "test": "node_modules/.bin/tape main.js | node_modules/.bin/tap-spec"
   },
   "repository": {
     "type": "git",
