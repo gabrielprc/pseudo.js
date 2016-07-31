@@ -881,7 +881,7 @@ VariableStatement
   = __ declarations:VariableDeclaration EOS {
       return {
         type:         "VariableDeclaration",
-        declarations: declarations
+        declarations: [declarations]
       };
     }
 
