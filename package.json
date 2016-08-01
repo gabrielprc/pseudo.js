@@ -1,4 +1,4 @@
-
+{
   "name": "pseudojs",
   "version": "0.0.1",
   "description": "Pseudo-code to Javascript compiler.",
@@ -16,7 +16,9 @@
     "url": "https://github.com/gabrielprc/pseudojs/issues"
   },
   "homepage": "https://github.com/gabrielprc/pseudojs#readme",
-  "dependencies": {},
+  "dependencies": {
+    "pegjs": "^0.9.0"
+  },
   "devDependencies": {
     "escodegen": "^1.8.0",
     "tap-spec": "^4.1.1",
