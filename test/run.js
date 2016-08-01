@@ -3,6 +3,7 @@ var fs = require('fs');
 var test = require('tape');
 var tests = require('./tests');
 var peg = require('pegjs');
+//var escodegen = require('escodegen');
 
 function run() {
 	var parser = buildParser();
